@@ -8,7 +8,10 @@
     "test": "node --test",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
-    "db:migrate": "node database/migrate.js",
+    "db:migrate": "typeorm migration:run -d database/dataSource.js",
+    "db:revert": "typeorm migration:revert -d database/dataSource.js",
+    "db:migration:generate": "typeorm migration:generate -d database/dataSource.js database/migrations/Change",
+    "db:schema:check": "typeorm schema:log -d database/dataSource.js",
     "db:seed": "node database/seed.js",
     "db:reset": "node database/reset.js"
   },

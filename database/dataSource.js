@@ -1,4 +1,5 @@
 require('reflect-metadata');
+const path = require('path');
 const { DataSource } = require('typeorm');
 require('dotenv').config();
 
@@ -8,6 +9,8 @@ function createDataSourceConfig() {
   const baseConfig = {
     type: 'postgres',
     entities: [UserSchema, EventSchema, CrawlJobSchema],
+    migrations: [path.join(__dirname, 'migrations/*.js')],
+    migrationsTableName: 'migrations',
     synchronize: false,
     logging: process.env.NODE_ENV === 'development',
   };
@@ -59,6 +62,7 @@ function getCrawlJobRepository() {
 }
 
 module.exports = {
+  default: AppDataSource,
   AppDataSource,
   initializeDatabase,
   closeDatabase,

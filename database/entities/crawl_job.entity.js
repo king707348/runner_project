@@ -12,44 +12,64 @@ const CrawlJobSchema = new EntitySchema({
     trigger: {
       type: 'enum',
       enum: ['MANUAL', 'SCHEDULED'],
+      enumName: 'crawl_trigger',
       default: 'MANUAL',
-    },
-    operator_id: {
-      type: 'bigint',
-      nullable: true,
     },
     status: {
       type: 'enum',
       enum: ['SUCCESS', 'NO_NEW', 'FAILED'],
+      enumName: 'crawl_status',
     },
-    source_name: {
+    sourceName: {
+      name: 'source_name',
       type: 'varchar',
       length: 50,
       default: '運動筆記',
     },
-    fetched_count: {
+    fetchedCount: {
+      name: 'fetched_count',
       type: 'int',
       default: 0,
     },
-    submitted_count: {
+    submittedCount: {
+      name: 'submitted_count',
       type: 'int',
       default: 0,
     },
-    failure_reason: {
+    failureReason: {
+      name: 'failure_reason',
       type: 'text',
       nullable: true,
     },
-    started_at: {
+    startedAt: {
+      name: 'started_at',
       type: 'timestamptz',
     },
-    finished_at: {
+    finishedAt: {
+      name: 'finished_at',
       type: 'timestamptz',
     },
-    created_at: {
+    createdAt: {
+      name: 'created_at',
       type: 'timestamptz',
       createDate: true,
     },
   },
+  relations: {
+    operator: {
+      type: 'many-to-one',
+      target: 'User',
+      joinColumn: { name: 'operator_id' },
+      nullable: true,
+      onDelete: 'SET NULL',
+    },
+  },
+  indices: [
+    {
+      name: 'idx_crawl_jobs_created_at',
+      columns: ['created_at'],
+    },
+  ],
 });
 
 module.exports = { CrawlJobSchema };

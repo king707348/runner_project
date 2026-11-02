@@ -1,56 +1,33 @@
-const { pool } = require('./connection');
-const fs = require('fs');
-const path = require('path');
+const { AppDataSource } = require('./dataSource');
+const { runSeeds } = require('./seed');
 
 async function resetDatabase() {
-  console.log('⚠️ [Reset] 正在重置本地資料庫（DROP ALL TABLES）...');
-  const client = await pool.connect();
+  if (process.env.NODE_ENV === 'production') {
+    console.error('🚫 [Reset] 正式環境嚴禁執行資料庫重置操作！');
+    process.exit(1);
+  }
+
+  console.log('⚠️ [Reset] 正在透過 TypeORM 重置本地開發資料庫...');
   try {
-    await client.query('BEGIN');
-    
-    // 清除既有表格
-    await client.query(`
-      DROP TABLE IF EXISTS crawl_jobs CASCADE;
-      DROP TABLE IF EXISTS events CASCADE;
-      DROP TABLE IF EXISTS users CASCADE;
-      DROP TABLE IF EXISTS event_divisions CASCADE;
-      DROP TABLE IF EXISTS user_oauth_accounts CASCADE;
-      DROP TABLE IF EXISTS user_security_logs CASCADE;
-      DROP TABLE IF EXISTS user_daily_metrics CASCADE;
-      DROP TABLE IF EXISTS user_training_activities CASCADE;
-    `);
+    await AppDataSource.initialize();
 
-    console.log('🧹 [Reset] 既有表格已清除！');
+    await AppDataSource.dropDatabase();
+    console.log('🧹 [Reset] 資料庫結構已清除！');
 
-    // 重新跑 migration
-    const migrationsDir = path.join(__dirname, 'migrations');
-    const migFiles = fs.readdirSync(migrationsDir).filter(f => f.endsWith('.sql')).sort();
-    for (const file of migFiles) {
-      console.log(`📄 [Migration] 正在套用: ${file}`);
-      const sql = fs.readFileSync(path.join(migrationsDir, file), 'utf-8');
-      await client.query(sql);
-    }
-    console.log('✅ [Reset] Schema 重建成功！');
+    const migrations = await AppDataSource.runMigrations();
+    console.log(`✅ [Reset] 成功執行 ${migrations.length} 個遷移檔案！`);
 
-    // 重新跑 seeds
-    const seedsDir = path.join(__dirname, 'seeds');
-    const seedFiles = fs.readdirSync(seedsDir).filter(f => f.endsWith('.sql')).sort();
-    for (const file of seedFiles) {
-      console.log(`🌱 [Seeder] 正在灌入: ${file}`);
-      const sql = fs.readFileSync(path.join(seedsDir, file), 'utf-8');
-      await client.query(sql);
-    }
-    console.log('✅ [Reset] 測試種子資料灌入成功！');
+    await AppDataSource.destroy();
 
-    await client.query('COMMIT');
-    console.log('🎉 [Reset] 資料庫重置完全成功！');
+    await runSeeds();
+    console.log('🎉 [Reset] 本地資料庫重置完全成功！');
   } catch (err) {
-    await client.query('ROLLBACK');
     console.error('❌ [Reset] 重置失敗:', err.message);
     process.exit(1);
   } finally {
-    client.release();
-    await pool.end();
+    if (AppDataSource.isInitialized) {
+      await AppDataSource.destroy();
+    }
   }
 }
 

@@ -18,66 +18,83 @@ const UserSchema = new EntitySchema({
       type: 'varchar',
       length: 50,
     },
-    password_hash: {
+    passwordHash: {
+      name: 'password_hash',
       type: 'varchar',
       length: 255,
       nullable: true,
+      select: false,
     },
     role: {
       type: 'enum',
       enum: ['USER', 'ADMIN'],
+      enumName: 'user_role',
       default: 'USER',
     },
-    auth_provider: {
+    authProvider: {
+      name: 'auth_provider',
       type: 'enum',
       enum: ['PASSWORD', 'GOOGLE'],
+      enumName: 'auth_provider',
       default: 'PASSWORD',
     },
-    has_oauth: {
+    hasOauth: {
+      name: 'has_oauth',
       type: 'boolean',
       default: false,
     },
-    oauth_provider: {
+    oauthProvider: {
+      name: 'oauth_provider',
       type: 'varchar',
       length: 50,
       nullable: true,
     },
-    oauth_id: {
+    oauthId: {
+      name: 'oauth_id',
       type: 'varchar',
       length: 255,
       nullable: true,
       unique: true,
     },
-    oauth_email: {
+    oauthEmail: {
+      name: 'oauth_email',
       type: 'varchar',
       length: 255,
       nullable: true,
     },
-    encrypted_refresh_token: {
+    encryptedRefreshToken: {
+      name: 'encrypted_refresh_token',
       type: 'text',
       nullable: true,
+      select: false,
     },
-    token_expires_at: {
+    tokenExpiresAt: {
+      name: 'token_expires_at',
       type: 'timestamptz',
       nullable: true,
     },
-    needs_reauth: {
+    needsReauth: {
+      name: 'needs_reauth',
       type: 'boolean',
       default: false,
     },
-    must_change_password: {
+    mustChangePassword: {
+      name: 'must_change_password',
       type: 'boolean',
       default: false,
     },
-    token_version: {
+    tokenVersion: {
+      name: 'token_version',
       type: 'int',
       default: 1,
     },
-    created_at: {
+    createdAt: {
+      name: 'created_at',
       type: 'timestamptz',
       createDate: true,
     },
-    updated_at: {
+    updatedAt: {
+      name: 'updated_at',
       type: 'timestamptz',
       updateDate: true,
     },

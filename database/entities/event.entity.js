@@ -16,6 +16,7 @@ const EventSchema = new EntitySchema({
     category: {
       type: 'enum',
       enum: ['MARATHON', 'ROAD_RUN', 'TRAIL', 'RELAY'],
+      enumName: 'event_category',
     },
     county: {
       type: 'varchar',
@@ -34,21 +35,26 @@ const EventSchema = new EntitySchema({
       type: 'varchar',
       length: 150,
     },
-    event_date: {
+    eventDate: {
+      name: 'event_date',
       type: 'date',
     },
-    registration_start: {
+    registrationStart: {
+      name: 'registration_start',
       type: 'date',
       nullable: true,
     },
-    registration_end: {
+    registrationEnd: {
+      name: 'registration_end',
       type: 'date',
     },
-    registration_url: {
+    registrationUrl: {
+      name: 'registration_url',
       type: 'varchar',
       length: 500,
     },
-    cover_url: {
+    coverUrl: {
+      name: 'cover_url',
       type: 'varchar',
       length: 500,
     },
@@ -56,40 +62,53 @@ const EventSchema = new EntitySchema({
       type: 'text',
       nullable: true,
     },
-    distance_km: {
+    distanceKm: {
+      name: 'distance_km',
       type: 'numeric',
       precision: 6,
       scale: 2,
+      transformer: {
+        to: (value) => value,
+        from: (value) => (value === null || value === undefined ? null : parseFloat(value)),
+      },
     },
-    division_name: {
+    divisionName: {
+      name: 'division_name',
       type: 'varchar',
       length: 100,
       nullable: true,
     },
-    fee_ntd: {
+    feeNtd: {
+      name: 'fee_ntd',
       type: 'int',
       nullable: true,
     },
-    start_time: {
+    startTime: {
+      name: 'start_time',
       type: 'time',
       nullable: true,
     },
     status: {
       type: 'enum',
       enum: ['PENDING', 'PUBLISHED', 'REJECTED', 'CLOSED', 'CANCELLED'],
+      enumName: 'event_status',
       default: 'PENDING',
     },
     source: {
       type: 'enum',
       enum: ['MANUAL', 'MANUAL_CRAWL', 'SCHEDULED_CRAWL'],
+      enumName: 'event_source',
       default: 'MANUAL_CRAWL',
     },
-    source_name: {
+    sourceName: {
+      name: 'source_name',
       type: 'varchar',
       length: 50,
+      nullable: true,
       default: '運動筆記',
     },
-    source_url: {
+    sourceUrl: {
+      name: 'source_url',
       type: 'varchar',
       length: 500,
       nullable: true,
@@ -100,30 +119,57 @@ const EventSchema = new EntitySchema({
       nullable: true,
       unique: true,
     },
-    created_by: {
-      type: 'bigint',
-      nullable: true,
-    },
-    updated_by: {
-      type: 'bigint',
-      nullable: true,
-    },
-    submitted_at: {
+    submittedAt: {
+      name: 'submitted_at',
       type: 'timestamptz',
+      default: () => 'NOW()',
     },
-    published_at: {
+    publishedAt: {
+      name: 'published_at',
       type: 'timestamptz',
       nullable: true,
     },
-    created_at: {
+    createdAt: {
+      name: 'created_at',
       type: 'timestamptz',
       createDate: true,
     },
-    updated_at: {
+    updatedAt: {
+      name: 'updated_at',
       type: 'timestamptz',
       updateDate: true,
     },
   },
+  relations: {
+    creator: {
+      type: 'many-to-one',
+      target: 'User',
+      joinColumn: { name: 'created_by' },
+      nullable: true,
+      onDelete: 'SET NULL',
+    },
+    updater: {
+      type: 'many-to-one',
+      target: 'User',
+      joinColumn: { name: 'updated_by' },
+      nullable: true,
+      onDelete: 'SET NULL',
+    },
+  },
+  indices: [
+    {
+      name: 'idx_events_status_reg_end',
+      columns: ['status', 'registration_end'],
+    },
+    {
+      name: 'idx_events_county_date',
+      columns: ['county', 'event_date'],
+    },
+    {
+      name: 'idx_events_distance',
+      columns: ['distance_km'],
+    },
+  ],
 });
 
 module.exports = { EventSchema };

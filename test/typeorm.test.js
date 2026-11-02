@@ -3,9 +3,12 @@ const assert = require('node:assert/strict');
 
 const { UserSchema, EventSchema, CrawlJobSchema } = require('../database/entities');
 const { AppDataSource } = require('../database/dataSource');
+const { userRepository } = require('../database/repositories/user.repository');
+const { eventRepository } = require('../database/repositories/event.repository');
+const { crawlJobRepository } = require('../database/repositories/crawl_job.repository');
 
 describe('TypeORM EntitySchema tests', () => {
-  it('defines UserSchema with correct table and column mappings', () => {
+  it('defines UserSchema with correct columns, enumName, and hidden select fields', () => {
     assert.equal(UserSchema.options.name, 'User');
     assert.equal(UserSchema.options.tableName, 'users');
 
@@ -13,34 +16,104 @@ describe('TypeORM EntitySchema tests', () => {
     assert.ok(columns.id.primary);
     assert.equal(columns.id.generated, 'identity');
     assert.equal(columns.email.unique, true);
+
+    // camelCase property maps to snake_case column
+    assert.equal(columns.passwordHash.name, 'password_hash');
+    assert.equal(columns.passwordHash.select, false);
+
+    assert.equal(columns.encryptedRefreshToken.name, 'encrypted_refresh_token');
+    assert.equal(columns.encryptedRefreshToken.select, false);
+
     assert.equal(columns.role.type, 'enum');
+    assert.equal(columns.role.enumName, 'user_role');
     assert.deepEqual(columns.role.enum, ['USER', 'ADMIN']);
+
+    assert.equal(columns.authProvider.name, 'auth_provider');
+    assert.equal(columns.authProvider.enumName, 'auth_provider');
   });
 
-  it('defines EventSchema with correct table and column mappings', () => {
+  it('defines EventSchema with relations, enumNames, indices, and distance transformer', () => {
     assert.equal(EventSchema.options.name, 'Event');
     assert.equal(EventSchema.options.tableName, 'events');
 
     const columns = EventSchema.options.columns;
     assert.ok(columns.id.primary);
-    assert.equal(columns.category.type, 'enum');
-    assert.deepEqual(columns.category.enum, ['MARATHON', 'ROAD_RUN', 'TRAIL', 'RELAY']);
-    assert.equal(columns.distance_km.type, 'numeric');
+    assert.equal(columns.category.enumName, 'event_category');
+    assert.equal(columns.status.enumName, 'event_status');
+    assert.equal(columns.source.enumName, 'event_source');
+
+    // Transformer check
+    assert.equal(columns.distanceKm.name, 'distance_km');
+    assert.equal(columns.distanceKm.transformer.from('42.195'), 42.195);
+    assert.equal(columns.distanceKm.transformer.from(null), null);
+
+    // Relations check
+    const relations = EventSchema.options.relations;
+    assert.ok(relations.creator);
+    assert.equal(relations.creator.type, 'many-to-one');
+    assert.equal(relations.creator.target, 'User');
+    assert.equal(relations.creator.joinColumn.name, 'created_by');
+
+    assert.ok(relations.updater);
+    assert.equal(relations.updater.type, 'many-to-one');
+    assert.equal(relations.updater.target, 'User');
+    assert.equal(relations.updater.joinColumn.name, 'updated_by');
+
+    // Indices check
+    const indices = EventSchema.options.indices;
+    assert.ok(indices.some((idx) => idx.name === 'idx_events_status_reg_end'));
+    assert.ok(indices.some((idx) => idx.name === 'idx_events_county_date'));
+    assert.ok(indices.some((idx) => idx.name === 'idx_events_distance'));
   });
 
-  it('defines CrawlJobSchema with correct table and column mappings', () => {
+  it('defines CrawlJobSchema with operator relation, enumNames, and index', () => {
     assert.equal(CrawlJobSchema.options.name, 'CrawlJob');
     assert.equal(CrawlJobSchema.options.tableName, 'crawl_jobs');
 
     const columns = CrawlJobSchema.options.columns;
     assert.ok(columns.id.primary);
-    assert.deepEqual(columns.status.enum, ['SUCCESS', 'NO_NEW', 'FAILED']);
+    assert.equal(columns.trigger.enumName, 'crawl_trigger');
+    assert.equal(columns.status.enumName, 'crawl_status');
+    assert.equal(columns.sourceName.name, 'source_name');
+
+    // Relations check
+    const relations = CrawlJobSchema.options.relations;
+    assert.ok(relations.operator);
+    assert.equal(relations.operator.type, 'many-to-one');
+    assert.equal(relations.operator.target, 'User');
+    assert.equal(relations.operator.joinColumn.name, 'operator_id');
+
+    // Index check
+    const indices = CrawlJobSchema.options.indices;
+    assert.ok(indices.some((idx) => idx.name === 'idx_crawl_jobs_created_at'));
   });
 
-  it('configures AppDataSource with PostgreSQL driver and entity schemas', () => {
+  it('configures AppDataSource with PostgreSQL driver, migrations, and entity schemas', () => {
     assert.equal(AppDataSource.options.type, 'postgres');
     assert.equal(AppDataSource.options.synchronize, false);
+    assert.equal(AppDataSource.options.migrationsTableName, 'migrations');
     assert.ok(Array.isArray(AppDataSource.options.entities));
     assert.equal(AppDataSource.options.entities.length, 3);
+    assert.ok(Array.isArray(AppDataSource.options.migrations));
+  });
+
+  it('allows repositories to operate with a custom or mock manager', async () => {
+    const mockRepo = {
+      create: (data) => ({ id: '1', ...data }),
+      save: async (entity) => ({ ...entity, saved: true }),
+      findOneBy: async (criteria) => ({ id: criteria.id, email: 'runner@pacer.com' }),
+    };
+
+    const mockManager = {
+      getRepository: () => mockRepo,
+    };
+
+    const created = await userRepository.createUser({ email: 'new@pacer.com', nickname: 'Test' }, mockManager);
+    assert.equal(created.id, '1');
+    assert.equal(created.saved, true);
+
+    const found = await userRepository.findUserById('1', mockManager);
+    assert.equal(found.id, '1');
+    assert.equal(found.email, 'runner@pacer.com');
   });
 });

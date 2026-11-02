@@ -1,117 +1,45 @@
-const db = require('../db');
-
-function mapRow(row) {
-  if (!row) return null;
-  return {
-    id: row.id,
-    trigger: row.trigger,
-    operatorId: row.operator_id,
-    status: row.status,
-    sourceName: row.source_name,
-    fetchedCount: row.fetched_count,
-    submittedCount: row.submitted_count,
-    failureReason: row.failure_reason,
-    startedAt: row.started_at,
-    finishedAt: row.finished_at,
-    createdAt: row.created_at,
-  };
-}
+const { AppDataSource, getCrawlJobRepository } = require('../dataSource');
+const { CrawlJobSchema } = require('../entities');
 
 class CrawlJobRepository {
-  async createCrawlJob(data, executor = db) {
-    const {
-      trigger = 'MANUAL',
-      operatorId = null,
-      status,
-      sourceName = '運動筆記',
-      fetchedCount = 0,
-      submittedCount = 0,
-      failureReason = null,
-      startedAt = new Date(),
-      finishedAt = new Date(),
-    } = data;
-
-    const sql = `
-      INSERT INTO crawl_jobs (
-        trigger, operator_id, status, source_name,
-        fetched_count, submitted_count, failure_reason,
-        started_at, finished_at
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-      RETURNING *
-    `;
-
-    const params = [
-      trigger,
-      operatorId,
-      status,
-      sourceName,
-      fetchedCount,
-      submittedCount,
-      failureReason,
-      startedAt,
-      finishedAt,
-    ];
-
-    const { rows } = await executor.query(sql, params);
-    return mapRow(rows[0]);
-  }
-
-  async findCrawlJobById(id, executor = db) {
-    const { rows } = await executor.query(
-      'SELECT * FROM crawl_jobs WHERE id = $1',
-      [id],
-    );
-    return mapRow(rows[0]);
-  }
-
-  async findRecentCrawlJobs(limit = 20, executor = db) {
-    const { rows } = await executor.query(
-      'SELECT * FROM crawl_jobs ORDER BY created_at DESC LIMIT $1',
-      [limit],
-    );
-    return rows.map(mapRow);
-  }
-
-  async updateCrawlJob(id, fields, executor = db) {
-    const fieldMapping = {
-      status: 'status',
-      sourceName: 'source_name',
-      fetchedCount: 'fetched_count',
-      submittedCount: 'submitted_count',
-      failureReason: 'failure_reason',
-      finishedAt: 'finished_at',
-    };
-
-    const updates = [];
-    const params = [];
-
-    for (const [key, column] of Object.entries(fieldMapping)) {
-      if (fields[key] !== undefined) {
-        params.push(fields[key]);
-        updates.push(`${column} = $${params.length}`);
-      }
+  getRepository(manager) {
+    if (manager && typeof manager.getRepository === 'function') {
+      return manager.getRepository(CrawlJobSchema);
     }
+    return getCrawlJobRepository();
+  }
 
-    if (updates.length === 0) {
-      return this.findCrawlJobById(id, executor);
-    }
+  async createCrawlJob(data, manager) {
+    const repo = this.getRepository(manager);
+    const job = repo.create(data);
+    return repo.save(job);
+  }
 
-    params.push(id);
-    const sql = `
-      UPDATE crawl_jobs
-      SET ${updates.join(', ')}
-      WHERE id = $${params.length}
-      RETURNING *
-    `;
+  async findCrawlJobById(id, manager) {
+    const repo = this.getRepository(manager);
+    return repo.findOne({
+      where: { id },
+      relations: ['operator'],
+    });
+  }
 
-    const { rows } = await executor.query(sql, params);
-    return mapRow(rows[0]);
+  async findRecentCrawlJobs(limit = 20, manager) {
+    const repo = this.getRepository(manager);
+    return repo.find({
+      order: { createdAt: 'DESC' },
+      take: limit,
+      relations: ['operator'],
+    });
+  }
+
+  async updateCrawlJob(id, fields, manager) {
+    const repo = this.getRepository(manager);
+    await repo.update(id, fields);
+    return repo.findOneBy({ id });
   }
 }
 
 module.exports = {
   CrawlJobRepository,
   crawlJobRepository: new CrawlJobRepository(),
-  mapRow,
 };
