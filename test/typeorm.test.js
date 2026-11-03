@@ -61,9 +61,17 @@ describe('TypeORM EntitySchema tests', () => {
 
     // Indices check
     const indices = EventSchema.options.indices;
-    assert.ok(indices.some((idx) => idx.name === 'idx_events_status_reg_end'));
-    assert.ok(indices.some((idx) => idx.name === 'idx_events_county_date'));
-    assert.ok(indices.some((idx) => idx.name === 'idx_events_distance'));
+    const statusRegEndIdx = indices.find((idx) => idx.name === 'idx_events_status_reg_end');
+    assert.ok(statusRegEndIdx);
+    assert.deepEqual(statusRegEndIdx.columns, ['status', 'registrationEnd']);
+
+    const countyDateIdx = indices.find((idx) => idx.name === 'idx_events_county_date');
+    assert.ok(countyDateIdx);
+    assert.deepEqual(countyDateIdx.columns, ['county', 'eventDate']);
+
+    const distanceIdx = indices.find((idx) => idx.name === 'idx_events_distance');
+    assert.ok(distanceIdx);
+    assert.deepEqual(distanceIdx.columns, ['distanceKm']);
   });
 
   it('defines CrawlJobSchema with operator relation, enumNames, and index', () => {
@@ -85,7 +93,9 @@ describe('TypeORM EntitySchema tests', () => {
 
     // Index check
     const indices = CrawlJobSchema.options.indices;
-    assert.ok(indices.some((idx) => idx.name === 'idx_crawl_jobs_created_at'));
+    const createdAtIdx = indices.find((idx) => idx.name === 'idx_crawl_jobs_created_at');
+    assert.ok(createdAtIdx);
+    assert.deepEqual(createdAtIdx.columns, ['createdAt']);
   });
 
   it('configures AppDataSource with PostgreSQL driver, migrations, and entity schemas', () => {
@@ -95,6 +105,21 @@ describe('TypeORM EntitySchema tests', () => {
     assert.ok(Array.isArray(AppDataSource.options.entities));
     assert.equal(AppDataSource.options.entities.length, 3);
     assert.ok(Array.isArray(AppDataSource.options.migrations));
+  });
+
+  it('builds entity metadatas without schema or index mapping errors', async () => {
+    await AppDataSource.buildMetadatas();
+    assert.equal(AppDataSource.entityMetadatas.length, 3);
+
+    const eventMetadata = AppDataSource.getMetadata(EventSchema);
+    const regEndIdx = eventMetadata.indices.find((idx) => idx.name === 'idx_events_status_reg_end');
+    assert.ok(regEndIdx);
+    assert.deepEqual(regEndIdx.columns.map((c) => c.databaseName), ['status', 'registration_end']);
+
+    const crawlJobMetadata = AppDataSource.getMetadata(CrawlJobSchema);
+    const crawlJobIdx = crawlJobMetadata.indices.find((idx) => idx.name === 'idx_crawl_jobs_created_at');
+    assert.ok(crawlJobIdx);
+    assert.deepEqual(crawlJobIdx.columns.map((c) => c.databaseName), ['created_at']);
   });
 
   it('allows repositories to operate with a custom or mock manager', async () => {

@@ -159,15 +159,15 @@ const EventSchema = new EntitySchema({
   indices: [
     {
       name: 'idx_events_status_reg_end',
-      columns: ['status', 'registration_end'],
+      columns: ['status', 'registrationEnd'],
     },
     {
       name: 'idx_events_county_date',
-      columns: ['county', 'event_date'],
+      columns: ['county', 'eventDate'],
     },
     {
       name: 'idx_events_distance',
-      columns: ['distance_km'],
+      columns: ['distanceKm'],
     },
   ],
 });

@@ -67,7 +67,7 @@ const CrawlJobSchema = new EntitySchema({
   indices: [
     {
       name: 'idx_crawl_jobs_created_at',
-      columns: ['created_at'],
+      columns: ['createdAt'],
     },
   ],
 });
