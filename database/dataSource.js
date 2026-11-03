@@ -62,7 +62,6 @@ function getCrawlJobRepository() {
 }
 
 module.exports = {
-  default: AppDataSource,
   AppDataSource,
   initializeDatabase,
   closeDatabase,
