@@ -1,0 +1,23 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pacer-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-pacer_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-pacer_secret}
+      POSTGRES_DB: ${DB_NAME:-pacer_db}
+      TZ: Asia/Taipei
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - pacer_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-pacer_user} -d ${DB_NAME:-pacer_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pacer_pg_data:
+    driver: local

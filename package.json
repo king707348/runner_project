@@ -1,11 +1,19 @@
 {
   "name": "runner_project",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "dev": "node server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:migrate": "typeorm migration:run -d database/dataSource.js",
+    "db:revert": "typeorm migration:revert -d database/dataSource.js",
+    "db:migration:generate": "typeorm migration:generate -d database/dataSource.js database/migrations/Change",
+    "db:schema:check": "typeorm schema:log -d database/dataSource.js",
+    "db:seed": "node database/seed.js",
+    "db:reset": "node database/reset.js"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +23,9 @@
     "cors": "^2.8.6",
     "dotenv": "^18.0.8",
     "express": "^5.3.0",
-    "swagger-ui-express": "^5.0.1"
+    "pg": "^8.23.1",
+    "reflect-metadata": "^0.2.2",
+    "swagger-ui-express": "^5.0.1",
+    "typeorm": "^1.1.2"
   }
 }
