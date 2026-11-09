@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict')
 const { after, before, test } = require('node:test')
 require('dotenv').config()
-const app = require('../app')
+const app = require('../../src/app')
 
 let server
 let baseUrl

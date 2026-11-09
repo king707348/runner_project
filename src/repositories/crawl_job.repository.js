@@ -1,5 +1,5 @@
-const { AppDataSource, getCrawlJobRepository } = require('../dataSource');
-const { CrawlJobSchema } = require('../entities');
+const { AppDataSource, getCrawlJobRepository } = require('../../db/data-source');
+const { CrawlJobSchema } = require('../../db/entities');
 
 class CrawlJobRepository {
   getRepository(manager) {

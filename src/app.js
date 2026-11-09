@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const openApiSpec = require('./openapi');
-const { AppDataSource } = require('./database/dataSource');
+const { AppDataSource } = require('../db/data-source');
 
 const app = express();
 

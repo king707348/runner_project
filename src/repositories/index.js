@@ -8,7 +8,7 @@ const {
   getUserRepository,
   getEventRepository,
   getCrawlJobRepository,
-} = require('../dataSource');
+} = require('../../db/data-source');
 
 module.exports = {
   UserRepository,

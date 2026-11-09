@@ -14,7 +14,7 @@ module.exports = [
   },
   {
     // db 相關程式碼暫不調整，未使用變數僅警告，不讓 CI 失敗
-    files: ['database/**/*.js', 'test/typeorm.test.js'],
+    files: ['db/**/*.js', 'src/repositories/**/*.js', 'tests/unit/typeorm.test.js'],
     rules: { 'no-unused-vars': 'warn' },
   },
 ];

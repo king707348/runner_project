@@ -1,5 +1,5 @@
-const { AppDataSource } = require('./dataSource');
-const { runSeeds } = require('./seed');
+const { AppDataSource } = require('./data-source');
+const { runSeeds } = require('./seed/init');
 
 async function resetDatabase() {
   if (process.env.NODE_ENV === 'production') {

@@ -1,11 +1,11 @@
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
 
-const { UserSchema, EventSchema, CrawlJobSchema } = require('../database/entities');
-const { AppDataSource } = require('../database/dataSource');
-const { userRepository } = require('../database/repositories/user.repository');
-const { eventRepository } = require('../database/repositories/event.repository');
-const { crawlJobRepository } = require('../database/repositories/crawl_job.repository');
+const { UserSchema, EventSchema, CrawlJobSchema } = require('../../db/entities');
+const { AppDataSource } = require('../../db/data-source');
+const { userRepository } = require('../../src/repositories/user.repository');
+const { eventRepository } = require('../../src/repositories/event.repository');
+const { crawlJobRepository } = require('../../src/repositories/crawl_job.repository');
 
 describe('TypeORM EntitySchema tests', () => {
   it('defines UserSchema with correct columns, enumName, and hidden select fields', () => {

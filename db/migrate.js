@@ -1,4 +1,4 @@
-const { AppDataSource } = require('./dataSource');
+const { AppDataSource } = require('./data-source');
 
 async function runMigrations() {
   console.log('🚀 [Migration] 開始透過 TypeORM 執行資料庫遷移...');

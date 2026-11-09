@@ -1,5 +1,5 @@
-const { AppDataSource, getEventRepository } = require('../dataSource');
-const { EventSchema } = require('../entities');
+const { AppDataSource, getEventRepository } = require('../../db/data-source');
+const { EventSchema } = require('../../db/entities');
 
 class EventRepository {
   getRepository(manager) {

@@ -1,13 +1,13 @@
 const fs = require('fs');
 const path = require('path');
-const { AppDataSource } = require('./dataSource');
+const { AppDataSource } = require('../data-source');
 
 async function runSeeds() {
   console.log('🌱 [Seeder] 開始透過 TypeORM 灌入測試種子資料...');
   try {
     await AppDataSource.initialize();
 
-    const seedsDir = path.join(__dirname, 'seeds');
+    const seedsDir = __dirname;
     const files = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();
 
     for (const file of files) {

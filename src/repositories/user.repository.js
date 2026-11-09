@@ -1,5 +1,5 @@
-const { AppDataSource, getUserRepository } = require('../dataSource');
-const { UserSchema } = require('../entities');
+const { AppDataSource, getUserRepository } = require('../../db/data-source');
+const { UserSchema } = require('../../db/entities');
 
 class UserRepository {
   getRepository(manager) {
