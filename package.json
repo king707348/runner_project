@@ -13,7 +13,8 @@
     "db:migration:generate": "typeorm migration:generate -d database/dataSource.js database/migrations/Change",
     "db:schema:check": "typeorm schema:log -d database/dataSource.js",
     "db:seed": "node database/seed.js",
-    "db:reset": "node database/reset.js"
+    "db:reset": "node database/reset.js",
+    "lint": "eslint ."
   },
   "keywords": [],
   "author": "",
@@ -27,5 +28,10 @@
     "reflect-metadata": "^0.2.2",
     "swagger-ui-express": "^5.0.1",
     "typeorm": "^1.1.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.14.0",
+    "globals": "^17.14.0"
   }
 }
