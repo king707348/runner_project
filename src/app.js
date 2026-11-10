@@ -3,9 +3,13 @@ const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const openApiSpec = require('./openapi');
 const { AppDataSource } = require('../db/data-source');
+const requestLogger = require('./middlewares/request-logger');
+const notFound = require('./middlewares/not-found');
+const errorHandler = require('./middlewares/error-handler');
 
 const app = express();
 
+app.use(requestLogger);
 app.use(cors({
   origin: process.env.CORS_ORIGIN || '*',
 }));
@@ -45,5 +49,9 @@ app.get('/api-docs.json', (req, res) => {
 });
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiSpec));
+
+// 404 與全域錯誤處理必須放在所有路由之後
+app.use(notFound);
+app.use(errorHandler);
 
 module.exports = app;

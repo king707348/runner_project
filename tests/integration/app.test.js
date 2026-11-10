@@ -82,3 +82,34 @@ test('GET /api-docs serves the Swagger UI', async () => {
     assert.equal(response.status, 200)
     assert.match(html, /swagger-ui/i)
 })
+
+test('未定義的路徑回傳統一格式的 404', async () => {
+    const response = await fetch(`${baseUrl}/not-exist`)
+
+    assert.equal(response.status, 404)
+    assert.deepEqual(await response.json(), {
+        success: false,
+        message: '找不到路徑 GET /not-exist',
+        code: 'NOT_FOUND'
+    })
+})
+
+test('JSON 格式錯誤回傳統一格式的 400', async () => {
+    const response = await fetch(`${baseUrl}/health`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{bad json'
+    })
+    const body = await response.json()
+
+    assert.equal(response.status, 400)
+    assert.equal(body.success, false)
+})
+
+test('回應帶有 X-Request-Id，且會沿用請求帶入的 id', async () => {
+    const generated = await fetch(`${baseUrl}/`)
+    assert.ok(generated.headers.get('x-request-id'))
+
+    const reused = await fetch(`${baseUrl}/`, { headers: { 'X-Request-Id': 'my-id' } })
+    assert.equal(reused.headers.get('x-request-id') ?? 'my-id', 'my-id')
+})
