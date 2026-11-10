@@ -3,6 +3,7 @@ const path = require('path');
 const { DataSource } = require('typeorm');
 require('dotenv').config();
 
+const logger = require('../src/utils/logger');
 const { UserSchema, EventSchema, CrawlJobSchema } = require('./entities');
 
 function createDataSourceConfig() {
@@ -37,7 +38,7 @@ const AppDataSource = new DataSource(createDataSourceConfig());
 async function initializeDatabase() {
   if (!AppDataSource.isInitialized) {
     await AppDataSource.initialize();
-    console.log('[TypeORM] 資料庫連線已成功初始化');
+    logger.info('[TypeORM] 資料庫連線已成功初始化');
   }
   return AppDataSource;
 }
@@ -45,7 +46,7 @@ async function initializeDatabase() {
 async function closeDatabase() {
   if (AppDataSource.isInitialized) {
     await AppDataSource.destroy();
-    console.log('[TypeORM] 資料庫連線已關閉');
+    logger.info('[TypeORM] 資料庫連線已關閉');
   }
 }
 
