@@ -2,12 +2,16 @@ const fs = require('fs');
 const path = require('path');
 const { AppDataSource } = require('../data-source');
 
+/**
+ * 依檔名排序，依序執行 db/seed 目錄下的所有 .sql 種子檔。
+ */
 async function runSeeds() {
   console.log('🌱 [Seeder] 開始透過 TypeORM 灌入測試種子資料...');
   try {
     await AppDataSource.initialize();
 
     const seedsDir = __dirname;
+    // 檔名以數字前綴排序（001_、002_…），確保執行順序固定
     const files = fs.readdirSync(seedsDir).filter((f) => f.endsWith('.sql')).sort();
 
     for (const file of files) {
@@ -15,6 +19,7 @@ async function runSeeds() {
       const filePath = path.join(seedsDir, file);
       const sql = fs.readFileSync(filePath, 'utf-8');
 
+      // 注意：目前只清除種子產生的 crawl_jobs；users、events 的重複處理由 SQL 檔自行負責
       // 避免 crawl_jobs 重複執行造成資料膨脹
       await AppDataSource.query(`
         DELETE FROM crawl_jobs WHERE source_name IN ('運動筆記', '伊貝特報名網');
@@ -35,6 +40,7 @@ async function runSeeds() {
   }
 }
 
+// 僅在直接執行此檔時才自動灌入種子資料
 if (require.main === module) {
   runSeeds();
 }

@@ -7,6 +7,7 @@ const { userRepository } = require('../../src/repositories/user.repository');
 const { eventRepository } = require('../../src/repositories/event.repository');
 const { crawlJobRepository } = require('../../src/repositories/crawl_job.repository');
 
+// 單元測試：驗證 Entity 定義、DataSource 設定與 Repository 行為（不需連線真實資料庫）
 describe('TypeORM EntitySchema tests', () => {
   it('defines UserSchema with correct columns, enumName, and hidden select fields', () => {
     assert.equal(UserSchema.options.name, 'User');
@@ -107,6 +108,7 @@ describe('TypeORM EntitySchema tests', () => {
     assert.ok(Array.isArray(AppDataSource.options.migrations));
   });
 
+  // buildMetadatas 只解析結構、不連線，可提早發現欄位或索引對應錯誤
   it('builds entity metadatas without schema or index mapping errors', async () => {
     await AppDataSource.buildMetadatas();
     assert.equal(AppDataSource.entityMetadatas.length, 3);
@@ -123,6 +125,7 @@ describe('TypeORM EntitySchema tests', () => {
   });
 
   it('allows repositories to operate with a custom or mock manager', async () => {
+    // 以假的 manager 取代資料庫，驗證 Repository 會使用傳入的 manager
     const mockRepo = {
       create: (data) => ({ id: '1', ...data }),
       save: async (entity) => ({ ...entity, saved: true }),

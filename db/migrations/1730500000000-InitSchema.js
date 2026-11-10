@@ -1,6 +1,13 @@
+/**
+ * 初始資料庫結構：建立列舉型別、users / events / crawl_jobs 資料表、索引與 updated_at 觸發器。
+ * 所有 DDL 皆使用 IF NOT EXISTS / IF EXISTS，重複執行不會出錯。
+ */
 module.exports = class InitSchema1730500000000 {
   name = 'InitSchema1730500000000';
 
+  /**
+   * 套用遷移（建立結構）。
+   */
   async up(queryRunner) {
     // 1. 列舉型別定義 (ENUMs)
     await queryRunner.query(`
@@ -111,6 +118,7 @@ module.exports = class InitSchema1730500000000 {
       CREATE INDEX IF NOT EXISTS idx_crawl_jobs_created_at ON crawl_jobs(created_at DESC);
     `);
 
+    // 每次 UPDATE 時由資料庫自動更新 updated_at，不依賴應用程式帶值
     // 6. updated_at 觸發器 (Trigger)
     await queryRunner.query(`
       CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -133,6 +141,9 @@ module.exports = class InitSchema1730500000000 {
     `);
   }
 
+  /**
+   * 回復遷移（移除結構）。
+   */
   async down(queryRunner) {
     // 依外鍵相依性反向清理
     await queryRunner.query(`

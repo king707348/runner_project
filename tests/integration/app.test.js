@@ -3,10 +3,12 @@ const { after, before, test } = require('node:test')
 require('dotenv').config()
 const app = require('../../src/app')
 
+// 整合測試：以隨機埠號啟動真實 HTTP 伺服器，再用 fetch 驗證回應
 let server
 let baseUrl
 
 before(async () => {
+    // 埠號傳 0 由作業系統分配空閒埠，避免與開發中的伺服器衝突
     server = app.listen(0, '127.0.0.1')
     await new Promise((resolve, reject) => {
         server.once('listening', resolve)
@@ -106,6 +108,7 @@ test('JSON 格式錯誤回傳統一格式的 400', async () => {
     assert.equal(body.success, false)
 })
 
+// 驗證 request id：未帶入時自動產生；有帶入時沿用
 test('回應帶有 X-Request-Id，且會沿用請求帶入的 id', async () => {
     const generated = await fetch(`${baseUrl}/`)
     assert.ok(generated.headers.get('x-request-id'))

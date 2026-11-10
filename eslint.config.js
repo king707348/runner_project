@@ -2,12 +2,15 @@ const js = require('@eslint/js');
 const globals = require('globals');
 
 module.exports = [
+  // ESLint flat config：不檢查第三方套件
   { ignores: ['node_modules/**'] },
+  // 套用官方建議規則
   js.configs.recommended,
   {
     files: ['**/*.js'],
     languageOptions: {
       ecmaVersion: 'latest',
+      // 專案使用 CommonJS（require / module.exports）
       sourceType: 'commonjs',
       globals: { ...globals.node },
     },

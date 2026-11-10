@@ -1,6 +1,10 @@
 const { AppDataSource } = require('./data-source');
 const { runSeeds } = require('./seed/init');
 
+/**
+ * 重置本機開發資料庫：清空結構 → 重新執行遷移 → 灌入種子資料。
+ * 會刪除所有資料，因此正式環境一律禁止執行。
+ */
 async function resetDatabase() {
   if (process.env.NODE_ENV === 'production') {
     console.error('🚫 [Reset] 正式環境嚴禁執行資料庫重置操作！');
@@ -11,6 +15,7 @@ async function resetDatabase() {
   try {
     await AppDataSource.initialize();
 
+    // 清除所有資料表與型別
     await AppDataSource.dropDatabase();
     console.log('🧹 [Reset] 資料庫結構已清除！');
 
@@ -19,6 +24,7 @@ async function resetDatabase() {
 
     await AppDataSource.destroy();
 
+    // runSeeds 會自行重新建立連線，因此上方先關閉連線
     await runSeeds();
     console.log('🎉 [Reset] 本地資料庫重置完全成功！');
   } catch (err) {
@@ -31,6 +37,7 @@ async function resetDatabase() {
   }
 }
 
+// 僅在直接執行此檔時才自動重置
 if (require.main === module) {
   resetDatabase();
 }

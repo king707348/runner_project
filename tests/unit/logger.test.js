@@ -5,6 +5,7 @@ const path = require('node:path')
 
 const loggerPath = path.join(__dirname, '../../src/utils/logger.js')
 
+// logger 在載入時就依 NODE_ENV 決定設定，所以每個案例都需要獨立的子行程
 // 以子行程載入 logger，取得實際輸出的 log 內容
 function runLogger(script, env = {}) {
     return execFileSync(process.execPath, ['-e', script], {
