@@ -11,8 +11,9 @@ const requestLogger = pinoHttp({
   logger,
   genReqId: (req, res) => {
     const existingId = req.headers['x-request-id'];
-    if (existingId) return existingId;
-    const id = randomUUID();
+    // 只接受英數字、底線、減號，最多 64 字；不合格則重新產生
+    const id = /^[\w-]{1,64}$/.test(existingId || '') ? existingId : randomUUID();
+    // 不論沿用或新產生，都回傳給客戶端
     res.setHeader('X-Request-Id', id);
     return id;
   },

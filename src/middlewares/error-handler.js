@@ -25,7 +25,9 @@ function errorHandler(err, req, res, next) {
     ? err.name === 'AppError' ? err.message : '請求格式錯誤'
     : '伺服器發生錯誤，請稍後再試';
 
-  return fail(res, message, isClientError ? statusCode : 500, err.code);
+  // 只有自行定義的 AppError 才回傳 code，避免洩漏資料庫等內部錯誤代號
+  const code = err.name === 'AppError' ? err.code : undefined;
+  return fail(res, message, isClientError ? statusCode : 500, code);
 }
 
 module.exports = errorHandler;

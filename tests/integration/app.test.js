@@ -114,5 +114,5 @@ test('回應帶有 X-Request-Id，且會沿用請求帶入的 id', async () => {
     assert.ok(generated.headers.get('x-request-id'))
 
     const reused = await fetch(`${baseUrl}/`, { headers: { 'X-Request-Id': 'my-id' } })
-    assert.equal(reused.headers.get('x-request-id') ?? 'my-id', 'my-id')
+    assert.equal(reused.headers.get('x-request-id'), 'my-id')
 })
