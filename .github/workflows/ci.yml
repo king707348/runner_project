@@ -1,0 +1,43 @@
+name: CI
+
+# PR 與合併到 main 後都會執行（對應 kickoff：lint / test / build）
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  lint-test:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+
+  docker-compose:
+    name: Docker Compose Smoke Test
+    runs-on: ubuntu-latest
+    needs: lint-test
+    steps:
+      - uses: actions/checkout@v4
+      - name: 驗證 compose 設定語法
+        run: docker compose config -q
+      - name: 建置並啟動 API 與 PostgreSQL
+        # CI 沒有 .env，直接使用 compose 內的預設值；--wait 會等待服務 healthy／running
+        run: docker compose up -d --build --wait
+      - name: 執行資料庫遷移
+        run: docker compose exec -T api npx typeorm migration:run -d db/data-source.js
+      - name: 健康檢查（/health 需回傳 200）
+        run: curl --fail --retry 10 --retry-delay 2 --retry-connrefused http://localhost:3000/health
+      - name: 失敗時輸出容器 log
+        if: failure()
+        run: docker compose logs
+      - name: 清理容器與 volume
+        if: always()
+        run: docker compose down -v

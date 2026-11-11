@@ -1,17 +1,43 @@
 services:
+  # 後端 API：使用專案 Dockerfile 建置
+  api:
+    build: .
+    container_name: pacer-api
+    restart: unless-stopped
+    # 等資料庫 healthy 後才啟動，避免啟動時連不上 DB
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      # 容器內固定使用 3000，與 Dockerfile 的 EXPOSE 一致
+      PORT: 3000
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+      # 主機名稱使用 service 名稱 postgres，容器內的 localhost 指向 API 自己
+      DATABASE_URL: postgresql://${DB_USER:-pacer_user}:${DB_PASSWORD:-pacer_secret}@postgres:5432/${DB_NAME:-pacer_db}
+    ports:
+      # 主機埠號可由 .env 的 PORT 決定，預設 3000
+      - "${PORT:-3000}:3000"
+
+  # 本機開發用 PostgreSQL；帳密與埠號可由 .env 覆寫
   postgres:
     image: postgres:16-alpine
     container_name: pacer-postgres
+    # 除非手動停止，否則異常結束或重開機後自動重啟
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USER:-pacer_user}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-pacer_secret}
       POSTGRES_DB: ${DB_NAME:-pacer_db}
+      # 資料庫時區（台灣）
       TZ: Asia/Taipei
     ports:
       - "${DB_PORT:-5432}:5432"
     volumes:
+      # 具名 volume：容器重建後資料仍會保留
       - pacer_pg_data:/var/lib/postgresql/data
+    # 等資料庫真正可連線後才視為 healthy
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-pacer_user} -d ${DB_NAME:-pacer_db}"]
       interval: 5s

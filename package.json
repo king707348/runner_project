@@ -1,19 +1,21 @@
 {
   "name": "runner_project",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "node server.js",
-    "test": "node --test",
+    "dev": "node bin/www.js",
+    "test": "NODE_ENV=test LOG_LEVEL=silent node --test \"tests/**/*.test.js\"",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
-    "db:migrate": "typeorm migration:run -d database/dataSource.js",
-    "db:revert": "typeorm migration:revert -d database/dataSource.js",
-    "db:migration:generate": "typeorm migration:generate -d database/dataSource.js database/migrations/Change",
-    "db:schema:check": "typeorm schema:log -d database/dataSource.js",
-    "db:seed": "node database/seed.js",
-    "db:reset": "node database/reset.js"
+    "db:migrate": "typeorm migration:run -d db/data-source.js",
+    "db:revert": "typeorm migration:revert -d db/data-source.js",
+    "db:migration:generate": "typeorm migration:generate -d db/data-source.js db/migrations/Change",
+    "db:schema:check": "typeorm schema:log -d db/data-source.js",
+    "db:seed": "node db/seed/init.js",
+    "db:reset": "node db/reset.js",
+    "lint": "eslint .",
+    "start": "node bin/www.js"
   },
   "keywords": [],
   "author": "",
@@ -24,8 +26,16 @@
     "dotenv": "^18.0.8",
     "express": "^5.3.0",
     "pg": "^8.23.1",
+    "pino": "^10.4.0",
+    "pino-http": "^11.0.0",
     "reflect-metadata": "^0.2.2",
     "swagger-ui-express": "^5.0.1",
     "typeorm": "^1.1.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.14.0",
+    "globals": "^17.14.0",
+    "pino-pretty": "^13.2.0"
   }
 }
