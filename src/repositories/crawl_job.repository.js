@@ -1,4 +1,4 @@
-const { AppDataSource, getCrawlJobRepository } = require('../../db/data-source');
+const { getCrawlJobRepository } = require('../../db/data-source');
 const { CrawlJobSchema } = require('../../db/entities');
 
 /**

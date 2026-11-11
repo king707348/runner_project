@@ -1,4 +1,4 @@
-const { AppDataSource, getUserRepository } = require('../../db/data-source');
+const { getUserRepository } = require('../../db/data-source');
 const { UserSchema } = require('../../db/entities');
 
 /**

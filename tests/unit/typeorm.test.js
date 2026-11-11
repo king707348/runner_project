@@ -4,8 +4,6 @@ const assert = require('node:assert/strict');
 const { UserSchema, EventSchema, CrawlJobSchema } = require('../../db/entities');
 const { AppDataSource } = require('../../db/data-source');
 const { userRepository } = require('../../src/repositories/user.repository');
-const { eventRepository } = require('../../src/repositories/event.repository');
-const { crawlJobRepository } = require('../../src/repositories/crawl_job.repository');
 
 // 單元測試：驗證 Entity 定義、DataSource 設定與 Repository 行為（不需連線真實資料庫）
 describe('TypeORM EntitySchema tests', () => {

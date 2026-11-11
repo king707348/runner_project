@@ -1,4 +1,4 @@
-const { AppDataSource, getEventRepository } = require('../../db/data-source');
+const { getEventRepository } = require('../../db/data-source');
 const { EventSchema } = require('../../db/entities');
 
 /**
