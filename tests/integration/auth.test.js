@@ -7,6 +7,7 @@ const { userRepository } = require('../../src/repositories/user.repository')
 let server
 let baseUrl
 let existingUser = null
+let googleUser = null
 let createdUser
 
 before(async () => {
@@ -20,8 +21,10 @@ before(async () => {
 
 beforeEach(() => {
     existingUser = null
+    googleUser = null
     createdUser = undefined
     userRepository.findUserByEmail = async () => existingUser
+    userRepository.findUserByOAuth = async () => googleUser
     userRepository.createUser = async (data) => {
         createdUser = data
         return data
@@ -67,6 +70,27 @@ test('POST /auth/register rejects an existing email', async () => {
     assert.deepEqual(await response.json(), {
         success: false,
         message: 'Email already exists',
+    })
+    assert.equal(createdUser, undefined)
+})
+
+test('POST /auth/register rejects an email used by a Google OAuth user', async () => {
+    googleUser = { id: '1', email: 'runner@example.com' }
+
+    const response = await fetch(`${baseUrl}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            email: 'runner@example.com',
+            nickname: 'Runner',
+            password: 'password123',
+        }),
+    })
+
+    assert.equal(response.status, 400)
+    assert.deepEqual(await response.json(), {
+        success: false,
+        message: 'Email already exists with Google OAuth',
     })
     assert.equal(createdUser, undefined)
 })
