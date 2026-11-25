@@ -1,50 +1,54 @@
 const express = require('express')
 const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
-const { User } = require('../db/entities/user.entity')
-
+const { userRepository } = require('../repositories/user.repository')
+const logger = require('../utils/logger')
 const { success, fail } = require('../utils/response')
-// 註冊路由
+
 const router = express.Router()
 
-// register
 router.post('/register', async (req, res) => {
-    const { username, password } = await req.body
+    const { email, nickname, password } = req.body || {}
+    const normalizedEmail = email.trim()
+    const normalizedNickname = nickname.trim()
+    // 檢查使用者是否已存在
+    const exitingUserFunc = async () => {
+        const existingUser = await userRepository.findUserByEmail(normalizedEmail)
+
+        if (existingUser) {
+            return fail(res, 'Email already exists', 400)
+        }
+    }
+    // 雜湊後儲存使用者資料
+    const hashedPasswordSaveFunc = async () => {
+        const passwordHash = await bcrypt.hash(password, 10)
+
+        await userRepository.createUser({
+            email: normalizedEmail,
+            nickname: normalizedNickname,
+            passwordHash,
+        })
+    }
 
     try {
-        if (!username || !password) {
-            return res.status(400).json(
-                fail('Username and password are required')
-            )
+        if (
+            typeof email !== 'string' || !normalizedEmail ||
+            typeof nickname !== 'string' || !normalizedNickname ||
+            typeof password !== 'string' || !password
+        ) {
+            return fail(res, 'Email, nickname, and password are required', 400)
         }
 
-        const salt = await bcrypt.genSalt(10)
-        const hashPassword = await bcrypt.hash(password, salt)
-        // Check if username already exists
-        const exitingUser = await User.findOne({
-            where: { username }
-        })
+        await exitingUserFunc()
+        await hashedPasswordSaveFunc()
 
-        if(exitingUser) {
-            return res.status(400).json(
-                fail('Username already exists')
-            )
-        }
+        logger.info(`User ${normalizedNickname} registered successfully`)
 
-        //saver user to database
-        await User.create({
-            username,
-            password: hashPassword
-        })
-
-
-
-        res.status(201).json(
-            success('User registered successfully')
-        )
+        return success(res, { message: 'User registered successfully' }, 201)
     } catch (error) {
-        res.status(500).json(
-            fail('Internal Server Error')
-        )
+        logger.error({ err: error }, 'Failed to register user')
+
+        return fail(res, 'Internal Server Error', 500)
     }
 })
+
+module.exports = router

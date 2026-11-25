@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const openApiSpec = require('./openapi');
+const authRouter = require('./routes/auth');
 const { AppDataSource } = require('../db/data-source');
 const requestLogger = require('./middlewares/request-logger');
 const notFound = require('./middlewares/not-found');
@@ -18,6 +19,7 @@ app.use(cors({
 }));
 // 解析 JSON request body
 app.use(express.json());
+app.use('/auth', authRouter);
 
 // 根路徑：確認 API 有回應
 app.get('/', (req, res) => {
