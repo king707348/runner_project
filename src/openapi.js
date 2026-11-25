@@ -55,6 +55,65 @@ module.exports = {
                     }
                 }
             }
+        },
+        '/auth/register': {
+            post: {
+                summary: 'Register a user account',
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                required: ['email', 'nickname', 'password'],
+                                properties: {
+                                    email: { type: 'string', format: 'email', example: 'runner@example.com' },
+                                    nickname: { type: 'string', example: 'Runner' },
+                                    password: { type: 'string', format: 'password', example: 'password123' }
+                                }
+                            }
+                        }
+                    }
+                },
+                responses: {
+                    201: {
+                        description: 'User registered successfully',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        success: { type: 'boolean', example: true },
+                                        data: {
+                                            type: 'object',
+                                            properties: {
+                                                message: { type: 'string', example: 'User registered successfully' }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    400: {
+                        description: 'Missing required fields or email already exists',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        success: { type: 'boolean', example: false },
+                                        message: { type: 'string', example: 'Email already exists' }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    500: {
+                        description: 'Internal server error'
+                    }
+                }
+            }
         }
     }
 }
