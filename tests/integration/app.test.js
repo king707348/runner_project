@@ -75,6 +75,12 @@ test('GET /api-docs.json exposes the documented API paths', async () => {
     assert.equal(spec.openapi, '3.0.3')
     assert.ok(spec.paths['/'])
     assert.ok(spec.paths['/health'])
+    assert.deepEqual(spec.paths['/auth/register'].post.requestBody.content['application/json'].schema.required, [
+        'email',
+        'nickname',
+        'password'
+    ])
+    assert.ok(spec.paths['/auth/register'].post.responses[201])
 })
 
 test('GET /api-docs serves the Swagger UI', async () => {
