@@ -13,10 +13,15 @@ router.post('/register', async (req, res) => {
     // 檢查使用者是否已存在
     const exitingUserFunc = async () => {
         const existingUser = await userRepository.findUserByEmail(normalizedEmail)
+        const isGoogleUser = await userRepository.findUserByOAuth('GOOGLE', normalizedEmail)
 
         if (existingUser) {
             return fail(res, 'Email already exists', 400)
         }
+        if (isGoogleUser) {
+            return fail(res, 'Email already exists with Google OAuth', 400)
+        }
+
     }
     // 雜湊後儲存使用者資料
     const hashedPasswordSaveFunc = async () => {
