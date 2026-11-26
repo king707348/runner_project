@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "node bin/www.js",
-    "test": "NODE_ENV=test LOG_LEVEL=silent node --test \"tests/**/*.test.js\"",
+    "test": "cross-env NODE_ENV=test LOG_LEVEL=silent node --test \"tests/**/*.test.js\"",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "db:migrate": "typeorm migration:run -d db/data-source.js",
@@ -36,6 +36,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "cross-env": "^10.1.0",
     "eslint": "^10.14.0",
     "globals": "^17.14.0",
     "pino-pretty": "^13.2.0"
