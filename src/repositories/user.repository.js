@@ -48,6 +48,18 @@ class UserRepository {
   }
 
   /**
+   * 依 Email 查詢登入所需資料，額外選取預設隱藏的密碼雜湊。
+   */
+  async findUserByEmailForLogin(email, manager) {
+    const repo = this.getRepository(manager);
+    return repo
+      .createQueryBuilder('user')
+      .addSelect('user.passwordHash')
+      .where('user.email = :email', { email })
+      .getOne();
+  }
+
+  /**
    * 依第三方登入（OAuth）供應商與帳號 id 查詢使用者。
    */
   async findUserByOAuth(oauthProvider, oauthId, manager) {
