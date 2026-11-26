@@ -175,6 +175,33 @@ test('POST /auth/login returns 401 for an incorrect password', async () => {
     })
 })
 
+test('POST /auth/login rejects Google OAuth users with a recognizable error', async () => {
+    existingUser = {
+        id: '43',
+        email: 'google@example.com',
+        nickname: 'Google Runner',
+        authProvider: 'GOOGLE',
+        hasOauth: true,
+        passwordHash: null,
+    }
+
+    const response = await fetch(`${baseUrl}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            email: 'google@example.com',
+            password: 'password123',
+        }),
+    })
+
+    assert.equal(response.status, 401)
+    assert.deepEqual(await response.json(), {
+        success: false,
+        message: '此帳號使用 Google 登入，請使用 Google 登入',
+        code: 'GOOGLE_OAUTH_REQUIRED',
+    })
+})
+
 // 登入成功 回傳token
 test('POST /auth/login returns a JWT for a valid user', async () => {
     const originalSecret = process.env.JWT_SECRET
@@ -186,6 +213,10 @@ test('POST /auth/login returns a JWT for a valid user', async () => {
             id: '42',
             email: 'runner@example.com',
             nickname: 'Runner',
+            role: 'USER',
+            hasOauth: false,
+            mustChangePassword: true,
+            createdAt: '2026-11-26T08:00:00.000Z',
             passwordHash: await bcrypt.hash('password123', 10),
         }
 
@@ -203,10 +234,19 @@ test('POST /auth/login returns a JWT for a valid user', async () => {
         assert.equal(body.success, true)
         assert.equal(body.data.message, 'Login successful')
         assert.equal(typeof body.data.token, 'string')
+        assert.deepEqual(body.data.user, {
+            nickname: 'Runner',
+            email: 'runner@example.com',
+            role: 'USER',
+            has_oauth: false,
+            must_change_password: true,
+            created_at: '2026-11-26T08:00:00.000Z',
+        })
 
         const payload = jwt.verify(body.data.token, secret)
         assert.equal(payload.id, '42')
         assert.equal(payload.email, 'runner@example.com')
+        assert.equal(payload.role, 'USER')
     } finally {
         if (originalSecret === undefined) {
             delete process.env.JWT_SECRET

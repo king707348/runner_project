@@ -60,7 +60,17 @@ router.post('/login', async (req, res) => {
         }
 
         const hasUser = await userRepository.findUserByEmailForLogin(email.trim())
-        if (!hasUser || !hasUser.passwordHash) {
+        if (!hasUser) {
+            return fail(res, '帳號或密碼錯誤', 401)
+        }
+
+        const isGoogleUser = hasUser.authProvider === 'GOOGLE' ||
+            (!hasUser.passwordHash && (hasUser.hasOauth || hasUser.oauthProvider === 'GOOGLE'))
+        if (isGoogleUser) {
+            return fail(res, '此帳號使用 Google 登入，請使用 Google 登入', 401, 'GOOGLE_OAUTH_REQUIRED')
+        }
+
+        if (!hasUser.passwordHash) {
             return fail(res, '帳號或密碼錯誤', 401)
         }
 
@@ -71,7 +81,8 @@ router.post('/login', async (req, res) => {
 
         const data = {
             id: hasUser.id,
-            email: hasUser.email
+            email: hasUser.email,
+            role: hasUser.role,
         }
 
         const token = jwt.sign(
@@ -83,8 +94,18 @@ router.post('/login', async (req, res) => {
         )
 
         logger.info(`User ${hasUser.nickname} logged in successfully`)
-
-        return success(res, { message: 'Login successful', token }, 200)
+        return success(res, {
+            message: 'Login successful',
+            token,
+            user: {
+                nickname: hasUser.nickname,
+                email: hasUser.email,
+                role: hasUser.role,
+                has_oauth: hasUser.hasOauth,
+                must_change_password: hasUser.mustChangePassword,
+                created_at: hasUser.createdAt,
+            },
+        }, 200)
     } catch(err) {
         logger.error({ err }, 'Failed to login user')
         

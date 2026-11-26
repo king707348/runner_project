@@ -114,6 +114,81 @@ module.exports = {
                     }
                 }
             }
+        },
+        '/auth/login': {
+            post: {
+                summary: 'Log in with email and password',
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                required: ['email', 'password'],
+                                properties: {
+                                    email: { type: 'string', format: 'email', example: 'runner@example.com' },
+                                    password: { type: 'string', format: 'password', example: 'password123' }
+                                }
+                            }
+                        }
+                    }
+                },
+                responses: {
+                    200: {
+                        description: 'Login successful',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        success: { type: 'boolean', example: true },
+                                        data: {
+                                            type: 'object',
+                                            properties: {
+                                                message: { type: 'string', example: 'Login successful' },
+                                                token: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' },
+                                                user: {
+                                                    type: 'object',
+                                                    required: ['nickname', 'email', 'role', 'has_oauth', 'must_change_password', 'created_at'],
+                                                    properties: {
+                                                        nickname: { type: 'string', example: 'Runner' },
+                                                        email: { type: 'string', format: 'email', example: 'runner@example.com' },
+                                                        role: { type: 'string', enum: ['USER', 'ADMIN'], example: 'USER' },
+                                                        has_oauth: { type: 'boolean', example: false },
+                                                        must_change_password: { type: 'boolean', example: false },
+                                                        created_at: { type: 'string', format: 'date-time', example: '2026-11-26T08:00:00.000Z' }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    400: {
+                        description: 'Email or password is missing'
+                    },
+                    401: {
+                        description: 'Invalid credentials or Google OAuth account',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        success: { type: 'boolean', example: false },
+                                        message: { type: 'string', example: '此帳號使用 Google 登入，請使用 Google 登入' },
+                                        code: { type: 'string', example: 'GOOGLE_OAUTH_REQUIRED' }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    500: {
+                        description: 'Internal server error'
+                    }
+                }
+            }
         }
     }
 }
